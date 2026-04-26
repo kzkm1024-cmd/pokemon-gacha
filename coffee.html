@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>コーヒー図鑑</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #e0f0ff 0%, #d0e8ff 40%, #c8d8f8 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 24px 60px;
+      color: #1a2a4a;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      text-shadow: 0 2px 12px rgba(100,150,220,0.3);
+    }
+
+    h1 span { color: #3a6fd8; }
+
+    .subtitle {
+      color: #5a7aa0;
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+
+    /* Tab nav */
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(160,190,230,0.4);
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1a2a4a;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+      user-select: none;
+    }
+
+    .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.9); transform: translateY(-1px); }
+    .tab-btn.active {
+      background: #f7d900;
+      color: #1a1a2e;
+      border-color: transparent;
+      box-shadow: 0 4px 20px rgba(247,217,0,0.4);
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      justify-content: center;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .filter-btn {
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(160,190,230,0.35);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1a2a4a;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s;
+      user-select: none;
+    }
+
+    .filter-btn:hover:not(.active) { background: rgba(255,255,255,0.9); transform: translateY(-1px); }
+    .filter-btn.active {
+      background: #3a6fd8;
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 3px 14px rgba(58,111,216,0.35);
+    }
+
+    /* Search */
+    .search-wrap {
+      width: 100%;
+      max-width: 440px;
+      margin-bottom: 8px;
+    }
+
+    #search {
+      width: 100%;
+      padding: 10px 18px;
+      border-radius: 50px;
+      border: 1px solid rgba(160,190,230,0.4);
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(8px);
+      font-size: 0.9rem;
+      color: #1a2a4a;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #search::placeholder { color: #8aaac8; }
+    #search:focus {
+      border-color: rgba(58,111,216,0.5);
+      box-shadow: 0 0 0 3px rgba(58,111,216,0.12);
+    }
+
+    /* Result count */
+    .result-count {
+      font-size: 0.78rem;
+      color: #5a7aa0;
+      margin-bottom: 20px;
+      align-self: flex-start;
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    /* Card grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1100px;
+      align-items: start;
+    }
+
+    /* Coffee card */
+    .coffee-card {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(160,190,230,0.4);
+      border-radius: 24px;
+      padding: 24px 28px;
+      animation: fadeIn 0.35s ease both;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: default;
+    }
+
+    .coffee-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(100,140,200,0.25);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Card header */
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .flag { font-size: 2.6rem; line-height: 1; flex-shrink: 0; }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .card-origin {
+      font-size: 0.75rem;
+      color: #5a7aa0;
+      margin-top: 3px;
+    }
+
+    /* Badges */
+    .badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-arabica   { background: rgba(58,111,216,0.18); color: #1a3a8a; }
+    .badge-robusta   { background: rgba(100,40,160,0.18); color: #3a0a7a; }
+    .badge-liberica  { background: rgba(20,140,80,0.18);  color: #0a4a20; }
+
+    .roast-light  { background: rgba(255,220,120,0.45); color: #7a4500; }
+    .roast-medium { background: rgba(210,160,80,0.45);  color: #5a2e00; }
+    .roast-mdark  { background: rgba(160,90,30,0.4);    color: #fff; }
+    .roast-dark   { background: rgba(70,30,5,0.55);     color: #f5dbb0; }
+
+    /* Flavor tags */
+    .flavor-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .flavor-tag {
+      padding: 3px 10px;
+      background: rgba(180,210,255,0.4);
+      border-radius: 20px;
+      font-size: 0.72rem;
+      color: #2a4a7a;
+      transition: background 0.15s;
+    }
+
+    .flavor-tag:hover { background: rgba(180,210,255,0.7); }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: rgba(100,140,200,0.2);
+      margin: 16px 0;
+    }
+
+    /* Ratings */
+    .ratings-title {
+      font-size: 0.72rem;
+      color: #5a7aa0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 7px;
+    }
+
+    .stat-name {
+      font-size: 0.7rem;
+      color: #4a6a90;
+      font-weight: 600;
+      width: 36px;
+      flex-shrink: 0;
+      letter-spacing: 0.3px;
+    }
+
+    .stat-val {
+      font-size: 0.78rem;
+      font-weight: 700;
+      width: 16px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .stat-bar-bg {
+      flex: 1;
+      background: rgba(100,140,200,0.2);
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .stat-bar {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Description */
+    .description {
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: #4a6a90;
+      margin-top: 2px;
+    }
+
+    /* Brew methods */
+    .brew-section { margin-top: 14px; }
+
+    .brew-label {
+      font-size: 0.68rem;
+      color: #5a7aa0;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+
+    .brew-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .brew-tag {
+      padding: 3px 10px;
+      background: rgba(247,217,0,0.25);
+      border-radius: 20px;
+      font-size: 0.72rem;
+      color: #5a3c00;
+      font-weight: 600;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #5a7aa0;
+      font-size: 1rem;
+      width: 100%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .empty-state p { margin-bottom: 6px; }
+    .empty-state small { font-size: 0.8rem; color: #8aaac8; }
+
+    /* Quiz panel */
+    .quiz-panel {
+      width: 100%;
+      max-width: 560px;
+      animation: fadeIn 0.35s ease both;
+    }
+
+    .quiz-progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .quiz-progress-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: rgba(100,140,200,0.2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .quiz-progress-bar {
+      height: 100%;
+      background: #f7d900;
+      border-radius: 99px;
+      transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .quiz-step-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #5a7aa0;
+      white-space: nowrap;
+    }
+
+    .quiz-card {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(160,190,230,0.4);
+      border-radius: 24px;
+      padding: 32px 28px 28px;
+    }
+
+    .quiz-question-emoji { font-size: 2.4rem; margin-bottom: 10px; }
+
+    .quiz-question-text {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .quiz-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .quiz-option {
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(6px);
+      border: 2px solid rgba(160,190,230,0.35);
+      border-radius: 16px;
+      padding: 16px 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #1a2a4a;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quiz-option-emoji { font-size: 1.8rem; line-height: 1; }
+
+    .quiz-option:hover {
+      background: rgba(255,255,255,0.95);
+      border-color: rgba(58,111,216,0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100,140,200,0.2);
+    }
+
+    .quiz-option.selected {
+      background: #f7d900;
+      border-color: #e0c000;
+      color: #1a1a2e;
+      box-shadow: 0 4px 20px rgba(247,217,0,0.4);
+    }
+
+    .quiz-back-btn {
+      background: none;
+      border: none;
+      color: #5a7aa0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 0;
+      transition: color 0.15s;
+    }
+
+    .quiz-back-btn:hover { color: #1a2a4a; }
+
+    /* Result screen */
+    .quiz-result-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .quiz-result-header .result-emoji { font-size: 2.8rem; margin-bottom: 8px; }
+
+    .quiz-result-header h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .quiz-result-header p {
+      font-size: 0.82rem;
+      color: #5a7aa0;
+    }
+
+    .result-cards-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .result-rank-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .rank-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .rank-1 { background: #f7d900; color: #1a1a2e; }
+    .rank-2 { background: rgba(160,190,230,0.6); color: #1a2a4a; }
+    .rank-3 { background: rgba(200,160,100,0.5); color: #3a2000; }
+
+    .match-pct {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #3a6fd8;
+      margin-left: auto;
+    }
+
+    .quiz-restart-btn {
+      background: #f7d900;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 32px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      box-shadow: 0 4px 20px rgba(247,217,0,0.4);
+      margin-top: 8px;
+      user-select: none;
+      align-self: center;
+    }
+
+    .quiz-restart-btn:hover { background: #ffe438; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(247,217,0,0.5); }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; }
+      .tab-nav { width: 100%; justify-content: center; flex-wrap: wrap; }
+      .card-grid { grid-template-columns: 1fr; }
+      .quiz-options { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>☕ <span>コーヒー</span>図鑑</h1>
+  <p class="subtitle">産地と種類からコーヒーの特徴を探ろう</p>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="origin">🌍 産地から探す</button>
+    <button class="tab-btn" data-tab="variety">🌱 種類から探す</button>
+    <button class="tab-btn" data-tab="mood">✨ 気分から探す</button>
+  </nav>
+
+  <!-- Browse controls (hidden in mood tab) -->
+  <div id="browse-controls">
+    <div id="filter-bar" class="filter-bar"></div>
+    <div class="search-wrap">
+      <input id="search" type="text" placeholder="名前・産地・フレーバーで検索...">
+    </div>
+    <p id="result-count" class="result-count"></p>
+    <div id="card-grid" class="card-grid"></div>
+    <div id="empty-state" class="empty-state" hidden>
+      <p>条件に合うコーヒーが見つかりませんでした。</p>
+      <small>別のフィルターやキーワードをお試しください。</small>
+    </div>
+  </div>
+
+  <!-- Mood quiz panel (hidden in origin/variety tabs) -->
+  <div id="quiz-panel" class="quiz-panel" hidden></div>
+
+  <script>
+    const RATING_LABELS = {
+      acidity: '酸味', body: 'コク', aroma: '香り', sweetness: '甘み', bitterness: '苦味'
+    };
+
+    const RATING_COLORS = {
+      acidity: '#ef5350', body: '#66bb6a', aroma: '#ab47bc',
+      sweetness: '#ffa726', bitterness: '#4fc3f7'
+    };
+
+    const VARIETY_BADGE = {
+      arabica: 'badge-arabica', robusta: 'badge-robusta', liberica: 'badge-liberica'
+    };
+
+    const ROAST_CLASS = {
+      light: 'roast-light', medium: 'roast-medium', mdark: 'roast-mdark', dark: 'roast-dark'
+    };
+
+    const coffeeData = [
+      {
+        id: 1,
+        name: 'イルガチェフェ',
+        nameEn: 'Yirgacheffe',
+        origin: 'エチオピア',
+        originKey: 'ethiopia',
+        flag: '🇪🇹',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ライト焙煎',
+        roastKey: 'light',
+        flavorTags: ['ジャスミン', 'ベルガモット', 'ピーチ', 'シトラス'],
+        ratings: { acidity: 5, body: 2, aroma: 5, sweetness: 4, bitterness: 1 },
+        description: 'エチオピア南部の高地で栽培される、世界最高峰のコーヒーのひとつ。華やかなフローラルの香りとブルーベリーを思わせる果実味が特徴。浅煎りで淹れると際立つ風味が楽しめる。',
+        brewMethods: ['ハンドドリップ', 'エアロプレス', 'フレンチプレス']
+      },
+      {
+        id: 2,
+        name: 'コロンビア スプレモ',
+        nameEn: 'Colombia Supremo',
+        origin: 'コロンビア',
+        originKey: 'colombia',
+        flag: '🇨🇴',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ミディアム焙煎',
+        roastKey: 'medium',
+        flavorTags: ['キャラメル', 'ナッツ', 'マイルド', 'チョコレート'],
+        ratings: { acidity: 3, body: 3, aroma: 3, sweetness: 4, bitterness: 2 },
+        description: 'バランスの取れた味わいで、コーヒー入門者にも親しみやすい一杯。アンデス山脈の豊かな土壌で育てられ、穏やかな酸味とキャラメルのような甘みが調和している。',
+        brewMethods: ['ハンドドリップ', 'サイフォン', 'コールドブリュー']
+      },
+      {
+        id: 3,
+        name: 'ブラジル セラード',
+        nameEn: 'Brazil Cerrado',
+        origin: 'ブラジル',
+        originKey: 'brazil',
+        flag: '🇧🇷',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ミディアムダーク焙煎',
+        roastKey: 'mdark',
+        flavorTags: ['ナッツ', 'チョコレート', 'ロースト', 'アーモンド'],
+        ratings: { acidity: 2, body: 4, aroma: 3, sweetness: 3, bitterness: 3 },
+        description: '世界最大のコーヒー生産国ブラジルのセラード高原産。低い酸味と豊かなコクが特徴で、エスプレッソブレンドのベースに最適。ナッツとチョコレートの風味が心地よく広がる。',
+        brewMethods: ['エスプレッソ', 'モカポット', 'ハンドドリップ']
+      },
+      {
+        id: 4,
+        name: 'グアテマラ アンティグア',
+        nameEn: 'Guatemala Antigua',
+        origin: 'グアテマラ',
+        originKey: 'guatemala',
+        flag: '🇬🇹',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ミディアム焙煎',
+        roastKey: 'medium',
+        flavorTags: ['ダークチョコ', 'スパイス', 'スモーク', 'ブラウンシュガー'],
+        ratings: { acidity: 3, body: 4, aroma: 4, sweetness: 3, bitterness: 3 },
+        description: 'アンティグア周辺の火山性土壌で育まれた、豊かなコクとスモーキーなニュアンスを持つコーヒー。ダークチョコレートやスパイスを思わせる複雑な風味が魅力。',
+        brewMethods: ['フレンチプレス', 'ハンドドリップ', 'エスプレッソ']
+      },
+      {
+        id: 5,
+        name: 'ケニア AA',
+        nameEn: 'Kenya AA',
+        origin: 'ケニア',
+        originKey: 'kenya',
+        flag: '🇰🇪',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ライト焙煎',
+        roastKey: 'light',
+        flavorTags: ['ブラックカラント', 'トマト', 'ベリー', 'ワイン'],
+        ratings: { acidity: 5, body: 3, aroma: 4, sweetness: 3, bitterness: 2 },
+        description: 'アフリカ屈指の品質を誇るケニア産の最高グレード。ブラックカラントやトマトを思わせる独特の強い酸味とワインのような複雑性が特徴。スペシャルティ愛好家に特に人気が高い。',
+        brewMethods: ['ハンドドリップ', 'エアロプレス']
+      },
+      {
+        id: 6,
+        name: 'ハワイ コナ',
+        nameEn: 'Hawaii Kona',
+        origin: 'ハワイ',
+        originKey: 'hawaii',
+        flag: '🇺🇸',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ミディアム焙煎',
+        roastKey: 'medium',
+        flavorTags: ['バニラ', 'マカダミア', 'ハチミツ', 'マイルド'],
+        ratings: { acidity: 2, body: 3, aroma: 4, sweetness: 5, bitterness: 1 },
+        description: 'ハワイ島コナ地区のマウナロア火山の斜面で栽培される、希少かつ高級なコーヒー。バニラとハチミツを思わせる甘みと、なめらかな口当たりが特徴。刺激が少なく飲みやすい。',
+        brewMethods: ['ハンドドリップ', 'サイフォン', 'コールドブリュー']
+      },
+      {
+        id: 7,
+        name: 'ジャマイカ ブルーマウンテン',
+        nameEn: 'Jamaica Blue Mountain',
+        origin: 'ジャマイカ',
+        originKey: 'jamaica',
+        flag: '🇯🇲',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ミディアム焙煎',
+        roastKey: 'medium',
+        flavorTags: ['シルキー', 'フローラル', 'クリーン', 'ハーブ'],
+        ratings: { acidity: 2, body: 3, aroma: 4, sweetness: 4, bitterness: 1 },
+        description: '「コーヒーの王様」とも称される世界三大銘柄のひとつ。ブルーマウンテン山脈の霧に包まれた土地で育ち、雑味のない洗練されたクリーンな味わいが際立つ。日本でも特に人気が高い。',
+        brewMethods: ['ハンドドリップ', 'サイフォン']
+      },
+      {
+        id: 8,
+        name: 'スマトラ マンデリン',
+        nameEn: 'Sumatra Mandheling',
+        origin: 'インドネシア',
+        originKey: 'indonesia',
+        flag: '🇮🇩',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ダーク焙煎',
+        roastKey: 'dark',
+        flavorTags: ['アース', 'シダー', 'ダークチョコ', 'ハーブ'],
+        ratings: { acidity: 1, body: 5, aroma: 4, sweetness: 2, bitterness: 4 },
+        description: 'スマトラ島独自の「ウェットハル」精製法で作られる、独特のアーシーな風味と重厚なコクが特徴のコーヒー。深煎りで際立つ土や森を思わせる複雑なフレーバーは唯一無二の個性。',
+        brewMethods: ['フレンチプレス', 'エスプレッソ', 'モカポット']
+      },
+      {
+        id: 9,
+        name: 'イエメン モカ マタリ',
+        nameEn: 'Yemen Mocha Mattari',
+        origin: 'イエメン',
+        originKey: 'yemen',
+        flag: '🇾🇪',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ミディアムダーク焙煎',
+        roastKey: 'mdark',
+        flavorTags: ['ワイン', 'ブルーベリー', 'スパイス', 'タバコ'],
+        ratings: { acidity: 4, body: 4, aroma: 5, sweetness: 3, bitterness: 3 },
+        description: 'コーヒー発祥の地・イエメンで古来から栽培される伝説的な銘柄。ナチュラル精製により生まれるワインのような発酵感とブルーベリーの風味は、他では味わえない唯一無二の個性。',
+        brewMethods: ['ハンドドリップ', 'フレンチプレス', 'サイフォン']
+      },
+      {
+        id: 10,
+        name: 'コスタリカ タラス',
+        nameEn: 'Costa Rica Tarrazu',
+        origin: 'コスタリカ',
+        originKey: 'costarica',
+        flag: '🇨🇷',
+        variety: 'アラビカ種',
+        varietyKey: 'arabica',
+        roast: 'ミディアム焙煎',
+        roastKey: 'medium',
+        flavorTags: ['アプリコット', 'ハチミツ', 'ブラウンシュガー', 'クリーン'],
+        ratings: { acidity: 3, body: 3, aroma: 4, sweetness: 4, bitterness: 2 },
+        description: 'タラス地方の高標高農園で栽培される高品質豆。清潔感のある甘みとフルーティーな酸味のバランスが絶妙で、クリーンカップの代名詞。ハニープロセスの豆は特に風味豊か。',
+        brewMethods: ['ハンドドリップ', 'エアロプレス', 'コールドブリュー']
+      },
+      {
+        id: 11,
+        name: 'ベトナム ロブスタ',
+        nameEn: 'Vietnam Robusta',
+        origin: 'ベトナム',
+        originKey: 'vietnam',
+        flag: '🇻🇳',
+        variety: 'ロブスタ種',
+        varietyKey: 'robusta',
+        roast: 'ダーク焙煎',
+        roastKey: 'dark',
+        flavorTags: ['ゴム', 'アース', '苦味強め', 'カフェイン豊富'],
+        ratings: { acidity: 1, body: 5, aroma: 2, sweetness: 1, bitterness: 5 },
+        description: 'ベトナム産ロブスタ種は世界生産量2位を誇るコーヒー。アラビカ種の約2倍のカフェインを含み、強烈な苦味とコクが特徴。インスタントコーヒーやエスプレッソブレンドに広く使われる。',
+        brewMethods: ['ベトナムフィルター', 'エスプレッソ', 'モカポット']
+      },
+      {
+        id: 12,
+        name: 'フィリピン バラコ',
+        nameEn: 'Philippines Barako',
+        origin: 'フィリピン',
+        originKey: 'philippines',
+        flag: '🇵🇭',
+        variety: 'リベリカ種',
+        varietyKey: 'liberica',
+        roast: 'ミディアムダーク焙煎',
+        roastKey: 'mdark',
+        flavorTags: ['フローラル', 'スモーク', 'ウッド', '独特の香り'],
+        ratings: { acidity: 2, body: 4, aroma: 3, sweetness: 2, bitterness: 4 },
+        description: '世界生産量1%未満という超希少なリベリカ種。フィリピンではバラコとも呼ばれ、独特のスモーキーな風味と花のような香りを持つ。通常のコーヒーとは全く異なる個性派として知られる。',
+        brewMethods: ['フレンチプレス', 'ハンドドリップ']
+      }
+    ];
+
+    const state = { tab: 'origin', activeFilter: 'all', search: '' };
+
+    function getFilteredCoffees() {
+      return coffeeData.filter(c => {
+        if (state.activeFilter !== 'all') {
+          const key = state.tab === 'origin' ? c.originKey : c.varietyKey;
+          if (key !== state.activeFilter) return false;
+        }
+        if (state.search) {
+          const haystack = (c.name + c.origin + c.variety + c.flavorTags.join('')).toLowerCase();
+          if (!haystack.includes(state.search)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderCard(coffee, index) {
+      const ratings = Object.entries(coffee.ratings).map(([key, val]) => {
+        const pct = (val / 5) * 100;
+        return `
+          <div class="stat-row">
+            <span class="stat-name">${RATING_LABELS[key]}</span>
+            <span class="stat-val">${val}</span>
+            <div class="stat-bar-bg">
+              <div class="stat-bar" data-width="${pct}%" style="width:0%; background:${RATING_COLORS[key]}"></div>
+            </div>
+          </div>`;
+      }).join('');
+
+      const flavorTags = coffee.flavorTags
+        .map(t => `<span class="flavor-tag">${t}</span>`)
+        .join('');
+
+      const brewTags = coffee.brewMethods
+        .map(m => `<span class="brew-tag">${m}</span>`)
+        .join('');
+
+      return `
+        <div class="coffee-card" style="animation-delay:${index * 0.05}s">
+          <div class="card-header">
+            <span class="flag">${coffee.flag}</span>
+            <div>
+              <div class="card-title">${coffee.name}</div>
+              <div class="card-origin">${coffee.origin} &nbsp;·&nbsp; ${coffee.nameEn}</div>
+            </div>
+          </div>
+          <div class="badges">
+            <span class="badge ${VARIETY_BADGE[coffee.varietyKey]}">${coffee.variety}</span>
+            <span class="badge ${ROAST_CLASS[coffee.roastKey]}">${coffee.roast}</span>
+          </div>
+          <div class="flavor-tags">${flavorTags}</div>
+          <div class="divider"></div>
+          <div class="ratings-title">風味プロファイル</div>
+          ${ratings}
+          <div class="divider"></div>
+          <p class="description">${coffee.description}</p>
+          <div class="brew-section">
+            <div class="brew-label">おすすめの淹れ方</div>
+            <div class="brew-tags">${brewTags}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderCards() {
+      const filtered = getFilteredCoffees();
+      const grid = document.getElementById('card-grid');
+      const empty = document.getElementById('empty-state');
+      const count = document.getElementById('result-count');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        empty.hidden = false;
+        count.textContent = '';
+      } else {
+        empty.hidden = true;
+        grid.innerHTML = filtered.map((c, i) => renderCard(c, i)).join('');
+        count.textContent = `${filtered.length} 件表示中`;
+        animateBars();
+      }
+    }
+
+    function animateBars() {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.querySelectorAll('.stat-bar[data-width]').forEach(bar => {
+            bar.style.width = bar.dataset.width;
+          });
+        });
+      });
+    }
+
+    function renderFilterBar(tab) {
+      const bar = document.getElementById('filter-bar');
+      let items;
+
+      if (tab === 'origin') {
+        const origins = [...new Map(coffeeData.map(c => [c.originKey, { key: c.originKey, label: `${c.flag} ${c.origin}` }])).values()];
+        items = [{ key: 'all', label: 'すべて' }, ...origins];
+      } else {
+        const varieties = [...new Map(coffeeData.map(c => [c.varietyKey, { key: c.varietyKey, label: c.variety }])).values()];
+        items = [{ key: 'all', label: 'すべて' }, ...varieties];
+      }
+
+      bar.innerHTML = items.map(item => {
+        const active = item.key === state.activeFilter ? ' active' : '';
+        return `<button class="filter-btn${active}" data-filter="${item.key}">${item.label}</button>`;
+      }).join('');
+    }
+
+    // ── Quiz ──────────────────────────────────────────────────────────────
+    const quizQuestions = [
+      {
+        emoji: '💭',
+        text: '今の気分は？',
+        options: [
+          { emoji: '🌅', label: 'シャキッと\n目覚めたい',  weights: { bitterness: 2, body: 2 } },
+          { emoji: '😌', label: 'リラックス\nしたい',      weights: { aroma: 2, sweetness: 1 } },
+          { emoji: '🎉', label: '気分を\n盛り上げたい',    weights: { acidity: 2, aroma: 2 } },
+          { emoji: '🌙', label: 'ゆったり\n味わいたい',    weights: { sweetness: 2, body: 1 } },
+        ]
+      },
+      {
+        emoji: '👅',
+        text: '好きな味の傾向は？',
+        options: [
+          { emoji: '🍋', label: '酸っぱいのが\n好き',      weights: { acidity: 3 } },
+          { emoji: '☕', label: '苦いのが\n好き',           weights: { bitterness: 3 } },
+          { emoji: '🍯', label: '甘いのが\n好き',           weights: { sweetness: 3 } },
+          { emoji: '⚖️', label: 'バランス\n重視',           weights: { acidity: 1, body: 1, aroma: 1, sweetness: 1, bitterness: 1 } },
+        ]
+      },
+      {
+        emoji: '🫗',
+        text: 'コクの好みは？',
+        options: [
+          { emoji: '☁️', label: 'あっさり\nさっぱり',       weights: { body: -1, acidity: 1 } },
+          { emoji: '🏔️', label: 'しっかり\nどっしり',      weights: { body: 3 } },
+        ]
+      },
+      {
+        emoji: '🕐',
+        text: '飲む時間帯は？',
+        options: [
+          { emoji: '🌅', label: '朝・\n目覚めに',           weights: { bitterness: 1, body: 1 } },
+          { emoji: '☀️', label: '昼・仕事や\n勉強中に',    weights: { acidity: 1, aroma: 1 } },
+          { emoji: '🌆', label: '夕方・\nひと休みに',       weights: { sweetness: 1, aroma: 1 } },
+          { emoji: '🌙', label: '夜・\nゆっくり',           weights: { sweetness: 2, body: -1 } },
+        ]
+      },
+    ];
+
+    const quizState = { step: 0, answers: [] };
+
+    function renderQuiz() {
+      const panel = document.getElementById('quiz-panel');
+      const q = quizQuestions[quizState.step];
+      const total = quizQuestions.length;
+      const pct = Math.round((quizState.step / total) * 100);
+
+      panel.innerHTML = `
+        <div class="quiz-progress-wrap">
+          <span class="quiz-step-label">Q${quizState.step + 1} / ${total}</span>
+          <div class="quiz-progress-bar-bg">
+            <div class="quiz-progress-bar" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <div class="quiz-card">
+          <div class="quiz-question-emoji">${q.emoji}</div>
+          <div class="quiz-question-text">${q.text}</div>
+          <div class="quiz-options">
+            ${q.options.map((opt, i) => `
+              <button class="quiz-option" data-index="${i}">
+                <span class="quiz-option-emoji">${opt.emoji}</span>
+                <span>${opt.label.replace('\n', '<br>')}</span>
+              </button>`).join('')}
+          </div>
+          ${quizState.step > 0 ? '<button class="quiz-back-btn">← 前の質問に戻る</button>' : ''}
+        </div>`;
+
+      panel.querySelector('.quiz-options').addEventListener('click', e => {
+        const btn = e.target.closest('.quiz-option');
+        if (!btn) return;
+        btn.classList.add('selected');
+        const idx = parseInt(btn.dataset.index);
+        quizState.answers[quizState.step] = idx;
+        setTimeout(() => {
+          quizState.step++;
+          if (quizState.step >= total) renderQuizResults();
+          else renderQuiz();
+        }, 220);
+      });
+
+      const backBtn = panel.querySelector('.quiz-back-btn');
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          quizState.step--;
+          quizState.answers.pop();
+          renderQuiz();
+        });
+      }
+    }
+
+    function calcQuizScores() {
+      const prefs = { acidity: 0, body: 0, aroma: 0, sweetness: 0, bitterness: 0 };
+      quizState.answers.forEach((optIdx, qIdx) => {
+        const weights = quizQuestions[qIdx].options[optIdx].weights;
+        Object.entries(weights).forEach(([k, v]) => { prefs[k] += v; });
+      });
+
+      return coffeeData.map(c => {
+        let score = 0, maxPossible = 0;
+        Object.entries(prefs).forEach(([k, w]) => {
+          if (w > 0) {
+            score += c.ratings[k] * w;
+            maxPossible += 5 * w;
+          } else if (w < 0) {
+            score += (5 - c.ratings[k]) * Math.abs(w);
+            maxPossible += 5 * Math.abs(w);
+          }
+        });
+        const pct = maxPossible > 0 ? Math.round((score / maxPossible) * 100) : 50;
+        return { coffee: c, pct };
+      }).sort((a, b) => b.pct - a.pct);
+    }
+
+    function renderQuizResults() {
+      const panel = document.getElementById('quiz-panel');
+      const ranked = calcQuizScores();
+      const top3 = ranked.slice(0, 3);
+      const rankEmoji = ['🥇', '🥈', '🥉'];
+      const rankClass = ['rank-1', 'rank-2', 'rank-3'];
+
+      const cardsHtml = top3.map(({ coffee, pct }, i) => `
+        <div>
+          <div class="result-rank-label">
+            <span class="rank-badge ${rankClass[i]}">${rankEmoji[i]}</span>
+            <span style="font-size:0.8rem;font-weight:700;color:#1a2a4a">${i === 0 ? 'ベストマッチ' : i === 1 ? '2位' : '3位'}</span>
+            <span class="match-pct">マッチ度 ${pct}%</span>
+          </div>
+          ${renderCard(coffee, i)}
+        </div>`).join('');
+
+      panel.innerHTML = `
+        <div class="quiz-result-header">
+          <div class="result-emoji">☕</div>
+          <h2>あなたへのおすすめ</h2>
+          <p>回答をもとにぴったりのコーヒーを選びました</p>
+        </div>
+        <div class="result-cards-wrap">${cardsHtml}</div>
+        <button class="quiz-restart-btn" id="quiz-restart">🔄 もう一度診断する</button>`;
+
+      animateBars();
+
+      panel.querySelector('#quiz-restart').addEventListener('click', () => {
+        quizState.step = 0;
+        quizState.answers = [];
+        renderQuiz();
+      });
+    }
+
+    // Event: tab nav
+    document.querySelector('.tab-nav').addEventListener('click', e => {
+      const btn = e.target.closest('.tab-btn');
+      if (!btn || btn.dataset.tab === state.tab) return;
+
+      state.tab = btn.dataset.tab;
+
+      document.querySelectorAll('.tab-btn').forEach(b =>
+        b.classList.toggle('active', b === btn)
+      );
+
+      const isMood = state.tab === 'mood';
+      document.getElementById('browse-controls').hidden = isMood;
+      document.getElementById('quiz-panel').hidden = !isMood;
+
+      if (isMood) {
+        quizState.step = 0;
+        quizState.answers = [];
+        renderQuiz();
+      } else {
+        state.activeFilter = 'all';
+        state.search = '';
+        document.getElementById('search').value = '';
+        renderFilterBar(state.tab);
+        renderCards();
+      }
+    });
+
+    // Event: filter pills
+    document.getElementById('filter-bar').addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      state.activeFilter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b =>
+        b.classList.toggle('active', b === btn)
+      );
+      renderCards();
+    });
+
+    // Event: search
+    document.getElementById('search').addEventListener('input', e => {
+      state.search = e.target.value.trim().toLowerCase();
+      renderCards();
+    });
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      renderFilterBar(state.tab);
+      renderCards();
+    });
+  </script>
+</body>
+</html>
